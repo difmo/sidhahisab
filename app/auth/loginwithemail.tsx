@@ -56,17 +56,16 @@ const LoginWithEmail = () => {
       const { token, refreshToken } = response.data;
       await AsyncStorage.setItem('token', token);
       await AsyncStorage.setItem('refreshToken', refreshToken);
-
       setLoading(false);
-      // Navigate to home tab
-      // router.replace('/(tabs)/home');
+      router.dismissAll();
+      console.log('Navigating to /home');
+      router.replace('/(tabs)/home');
     } catch (err: any) {
       setLoading(false);
       console.error('Login error:', err);
-      // Extract server-side error message if available
+
       const errorMessage =
         err?.response?.data?.message || 'Login failed. Check your credentials.';
-
       setError(errorMessage);
     }
   };
@@ -80,7 +79,11 @@ const LoginWithEmail = () => {
   };
 
   const handleSignUp = () => {
-    router.push('/auth/loginwithemail'); // Change to your actual sign-up path
+    router.push('/auth/loginwithemail'); //Change to your actual sign-up path
+  };
+  
+  const handleForgotPassword = () => {
+    router.push({ pathname: '/auth/forgotpasword' }); //Change to your actual forgot password path
   };
 
   return (
@@ -124,7 +127,10 @@ const LoginWithEmail = () => {
 
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-          <TouchableOpacity style={{ alignSelf: 'flex-end' }}>
+          <TouchableOpacity 
+            onPress={handleForgotPassword}
+            style={{ alignSelf: 'flex-end' }}
+          >
             <Text style={styles.forgotText}>Forgot Password?</Text>
           </TouchableOpacity>
 

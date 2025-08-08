@@ -2,7 +2,7 @@
 import api from './api';
 
 class PasswordService {
-  forgotPassword(data: { emailOrPhone: string }) {
+  forgotPassword(data: { email: string }) {
     return api.post('/auth-service/api/Password/forgot-Password', data);
   }
 
@@ -10,7 +10,9 @@ class PasswordService {
     return api.post('/auth-service/api/Password/ResetPassword', data);
   }
 
-  updatePassword(data: { oldPassword: string; newPassword: string }) {
+
+  updatePassword(data: { oldPassword: string; newPassword: string}) {
+    console.log('Updating password with data:', data);
     return api.put('/auth-service/api/Password/UpdatedPassword', data);
   }
 }

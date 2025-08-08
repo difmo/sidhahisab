@@ -12,12 +12,13 @@
       "supportsTablet": true
     },
     "android": {
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-       "package": "com.difmo.sidhahisab"
+      "package": "com.difmo.sidhahisab"
     },
     "web": {
       "bundler": "metro",
@@ -38,6 +39,13 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+      },
+      "eas": {
+        "projectId": "38118e5f-a4ee-4c14-81ac-e21577894471"
+      }
     }
   }
 }
