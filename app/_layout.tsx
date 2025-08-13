@@ -1,13 +1,12 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack, useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
-
 import { useColorScheme } from '@/hooks/useColorScheme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { useFonts } from 'expo-font';
+import { Redirect, Stack, useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
+import 'react-native-reanimated';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -15,26 +14,34 @@ export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
-  const [checkingLogin, setCheckingLogin] = useState(true); // Add this to track status
+  const [checkingLogin, setCheckingLogin] = useState(true);
+
+
   useEffect(() => {
     const checkLoginStatus = async () => {
-      try{
+      try {
         const token = await AsyncStorage.getItem('token');
-        setCheckingLogin(false); // Set to false after checking
+        // if (token) {
+        //   console.log(`Token exists, redirecting to home ${token}`);
+        //   // Navigate and stop further rendering of RootLayout's auth stack
+        //   router.push('/(tabs)/home');
+        //   return; // Prevent continuing into the <Stack> rendering
+        // }
         if (token) {
-          console.log(`Token exists, redirecting to home ${token}`);
-          router.replace('/(tabs)/home'); // Redirect to home
+          return <Redirect href="/(tabs)/home" />;
+        } else {
+          return <Redirect href="/auth/loginwithemail" />;
         }
       } catch (e) {
         console.error("Failed to check login status", e);
       } finally {
-        setCheckingLogin(false); // Done checking, allow UI to render
+        setCheckingLogin(false);
       }
     };
     checkLoginStatus();
   }, []);
-    
-  // Wait until both fonts and login check are ready
+
+  // While checking or fonts are loading, show spinner
   if (!fontsLoaded || checkingLogin) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -42,12 +49,16 @@ export default function RootLayout() {
       </View>
     );
   }
+
+  // Render only if user is NOT redirected
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="auth" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="others" options={{ headerShown: false }} />
+        <Stack.Screen name="partners" options={{ headerShown: false }} />
+        <Stack.Screen name="AddCustomerFormScreen" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />

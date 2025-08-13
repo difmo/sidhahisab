@@ -1,7 +1,7 @@
 // app/index.tsx
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
@@ -14,10 +14,15 @@ export default function Index() {
       try {
         const token = await AsyncStorage.getItem('token');
         console.log(`Token found: ${token}`);
+        // if (token) {
+        //   router.replace('/(tabs)/home');   //or'/dashboard'if your screen is named that
+        // } else {
+        //   router.replace('/auth/loginwithemail');
+        // }
         if (token) {
-          router.replace('/(tabs)/home');   //or'/dashboard'if your screen is named that
+          return <Redirect href="/(tabs)/home" />;
         } else {
-          router.replace('/auth/loginwithemail');
+          return <Redirect href="/auth/loginwithemail" />;
         }
       } catch (e) {
         console.log("Auth check failed", e);

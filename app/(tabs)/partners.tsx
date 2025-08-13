@@ -2,6 +2,7 @@ import AppHeader from '@/components/AppHeader';
 import ScrollContainer from '@/components/RnScrollContainer';
 import RnText from '@/components/RnText';
 import { Colors } from '@/constants/Colors';
+import { useRouter } from 'expo-router';
 
 import { Entypo, MaterialIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
@@ -40,6 +41,7 @@ const customersData = [
 ];
 
 export default function Partners() {
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [filteredCustomers, setFilteredCustomers] = useState(customersData);
   const [modalVisible, setModalVisible] = useState(false);
@@ -124,7 +126,9 @@ export default function Partners() {
                 style={styles.modalItem}
                 onPress={() => {
                   setModalVisible(false);
-                  // Add action logic here
+                  if (action.title === 'Add New Customer') {
+                    router.push('/partners/AddCustomerFormScreen');
+                  }
                 }}
               >
                 <MaterialIcons
