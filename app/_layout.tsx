@@ -59,7 +59,12 @@ export default function RootLayout() {
         <Stack.Screen name="others" options={{ headerShown: false }} />
         <Stack.Screen name="partners" options={{ headerShown: false }} />
         <Stack.Screen name="AddCustomerFormScreen" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
+        <Stack.Screen name="AddProductFormScreen" options={{ headerShown: false }} />
+        <Stack.Screen name="CreateOrderFormScreen" options={{ headerShown: false }} />
+        <Stack.Screen name="NewPurchageOrderFormScreen" options={{ headerShown: false }} />
+        <Stack.Screen name="EditProfileScreen" options={{ headerShown: false }} />
+        <Stack.Screen name="CustomerDetails" options={{ headerShown: false }} />
+        <Stack.Screen name="+not-found"/>
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

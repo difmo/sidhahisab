@@ -4,6 +4,7 @@ import RnText from "@/components/RnText";
 import { Colors } from "@/constants/Colors";
 import { hp } from "@/utils/Dimensions";
 import { Entypo, MaterialIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   FlatList,
@@ -46,6 +47,7 @@ const featureActions = [
 ];
 
 export default function Orders() {
+  const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
   const [search, setSearch] = useState("");
   const [filteredOrders, setFilteredOrders] = useState(dummyOrders);
@@ -71,7 +73,7 @@ export default function Orders() {
     }
   };
 
-  
+
   const renderOrder = ({ item }: { item: typeof dummyOrders[0] }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
@@ -91,7 +93,15 @@ export default function Orders() {
   );
 
   return (
-      <ScrollContainer>
+      <View style={{ flex: 1, backgroundColor: Colors.light.background }}>
+          <TouchableOpacity
+            style={styles.floatingButton}
+            onPress={() => setModalVisible(true)}
+          >
+            <Entypo name="plus" size={24} color="#fff" />
+          </TouchableOpacity>
+    
+    <ScrollContainer>
       <AppHeader />
 
       {/* Search Controls */}
@@ -125,15 +135,6 @@ export default function Orders() {
           </View>
         }
       />
-
-      {/* Floating Button */}
-      <TouchableOpacity
-        style={styles.floatingButton}
-        onPress={() => setModalVisible(true)}
-      >
-        <Entypo name="plus" size={24} color="#fff" />
-      </TouchableOpacity>
-
       {/* Bottom Modal */}
       <Modal visible={modalVisible} animationType="fade" transparent>
         <Pressable
@@ -142,7 +143,20 @@ export default function Orders() {
         >
           <View style={styles.modalSheet}>
             {featureActions.map((action, idx) => (
-              <TouchableOpacity key={idx} style={styles.modalItem}>
+              <TouchableOpacity key={idx} style={styles.modalItem}
+                onPress={() => {
+                  setModalVisible(false);
+                  if (action.title === "Create New Order") {
+                    router.push("/orders/CreateOrderFormScreen"); // route name we'll define
+                  } else if (action.title === "New Purchase Order") {
+                    router.push("/orders/NewPurchageOrderFormScreen"); // route name we'll define
+                  }
+
+                  else if (action.title === 'Add Product') {
+                    router.push('/products/AddProductFormScreen');   // Adjust the route as needed
+                  }
+                }}
+              >
                 <MaterialIcons
                   name={action.icon as any}
                   size={22}
@@ -156,6 +170,8 @@ export default function Orders() {
         </Pressable>
       </Modal>
     </ScrollContainer>
+    </View>
+
   );
 }
 
@@ -229,13 +245,22 @@ const styles = StyleSheet.create({
   },
   floatingButton: {
     position: "absolute",
-    bottom: 30,
-    right: 30,
+    bottom: 20,      
+    right: 20,        
     backgroundColor: Colors.light.primary,
-    padding: 18,
-    borderRadius: 50,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.5,
     elevation: 5,
+    zIndex: 10,        // make sure it stays above charts
   },
+
   modalBackdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.3)",

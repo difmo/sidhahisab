@@ -8,22 +8,19 @@ import { ActivityIndicator, View } from 'react-native';
 export default function Index() {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
-
   useEffect(() => {
+
     const checkAuth = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
         console.log(`Token found: ${token}`);
-        // if (token) {
-        //   router.replace('/(tabs)/home');   //or'/dashboard'if your screen is named that
-        // } else {
-        //   router.replace('/auth/loginwithemail');
-        // }
+
         if (token) {
           return <Redirect href="/(tabs)/home" />;
         } else {
           return <Redirect href="/auth/loginwithemail" />;
         }
+
       } catch (e) {
         console.log("Auth check failed", e);
         router.replace('/auth/loginwithemail');
@@ -31,7 +28,6 @@ export default function Index() {
         setChecking(false);
       }
     };
-
     checkAuth();
   }, []);
 

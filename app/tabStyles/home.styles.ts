@@ -6,8 +6,8 @@ import { Dimensions, StyleSheet } from "react-native";
 const { width } = Dimensions.get("window");
 const cardWidth = (width - wp(12)) / 2; // Adjust spacing
 export default StyleSheet.create({
- titleContainer: {
-  marginTop: hp(3),
+  titleContainer: {
+    marginTop: hp(3),
     flexDirection: 'row',
     paddingVertical: hp(2),
     alignItems: 'center',
@@ -73,22 +73,29 @@ export default StyleSheet.create({
     fontWeight: 'bold',
     // dont
   },
+
   questionsContainer: {
     alignItems: 'center',
     paddingTop: hp(2),
   },
 
-
   floatingButton: {
-    position: 'absolute',
-    bottom: 30,
-    right: 30,
+    position: "absolute",
+    bottom: 20,       // distance from bottom
+    right: 20,        // distance from right
     backgroundColor: Colors.light.primary,
-    padding: 18,
-    borderRadius: 50,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.5,
     elevation: 5,
+    zIndex: 10,        // make sure it stays above charts
   },
-
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.3)',
@@ -107,7 +114,7 @@ export default StyleSheet.create({
     borderBottomColor: '#eee',
     borderBottomWidth: 1,
   },
-   cardWrapper: {
+  cardWrapper: {
     paddingHorizontal: 16,
     marginTop: 20,
   },

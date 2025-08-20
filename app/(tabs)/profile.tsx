@@ -3,6 +3,7 @@ import ScrollContainer from "@/components/RnScrollContainer";
 import RnText from "@/components/RnText";
 import { Colors } from "@/constants/Colors";
 import authService from "@/services/authService";
+import { clearSelectedTenant, getUserId, getUserName } from "@/services/TenantService";
 import { hp } from "@/utils/Dimensions";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -22,7 +23,7 @@ export default function Profile() {
   const [conveImage, setConveImage] = useState<string | null>(null);
   const [logo, setLogo] = useState<string | null>(null);
   const [qrCode, setQrCode] = useState<string | null>(null);
-  const [businessName, setBusinessName] = useState("ANURAG GENERAL STORE");
+  const [businessName, setBusinessName] = useState("");
   const [businessUrl, setBusinessUrl] = useState("ags.sidhahisab.com");
   const [loading, setLoading] = useState(false); // Loader state
 
@@ -32,6 +33,7 @@ export default function Profile() {
       await authService.logout();
       await AsyncStorage.removeItem("token");
       await AsyncStorage.removeItem("refreshToken");
+      await clearSelectedTenant(); // Clear selected tenant
       router.replace("/auth/loginwithemail");
     } catch (error) {
       Alert.alert("Logout Failed", "Something went wrong.");
@@ -42,18 +44,22 @@ export default function Profile() {
 
   useEffect(() => {
     const fetchProfileData = async () => {
+
       try {
-        const storedLogo = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e";
+        const storedLogo = "https://avatar.iran.liara.run/public/boy";
         const storedQrCode = "https://i.ibb.co/9Hh9wSPL/Untitled-1.png";
-        const storedBusinessName = "ANURAG GENERAL STORE";
+        const storedBusinessName = await getUserName();
+        const storedUserId = await getUserId();
         const storedBusinessUrl = "ags.sidhahisab.com";
         const storedConveImage = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e";
 
         if (storedLogo) setLogo(storedLogo);
         if (storedQrCode) setQrCode(storedQrCode);
         if (storedBusinessName) setBusinessName(storedBusinessName);
+        setBusinessName(storedBusinessName || "ANURAG GENERAL STORE");
         if (storedBusinessUrl) setBusinessUrl(storedBusinessUrl);
         if (storedConveImage) setConveImage(storedConveImage);
+
       } catch (error) {
         console.error("Failed to fetch profile data", error);
       }
@@ -61,6 +67,7 @@ export default function Profile() {
 
     fetchProfileData();
   }, []);
+
 
   return (
     <ScrollContainer>
@@ -148,7 +155,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    padding:5,
+    padding: 5,
     backgroundColor: "#f9f9f9",
   },
   uploadLogo: {
@@ -243,10 +250,10 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#333",
   },
-    subMenuText: {
+  subMenuText: {
     fontSize: 12,
     fontWeight: "600",
-    color:Colors.light.primary,
+    color: Colors.light.primary,
   },
   logoutBtn: {
     marginTop: 30,

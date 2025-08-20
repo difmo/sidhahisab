@@ -1,4 +1,6 @@
+import RnText from '@/components/RnText';
 import authService from '@/services/authService';
+import { saveTenants, setSelectedTenant, setUserEmail, setUserId, setUserNames } from '@/services/TenantService';
 import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
@@ -7,6 +9,7 @@ import {
   ActivityIndicator,
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -23,6 +26,8 @@ const LoginWithEmail = () => {
   const [error, setError] = useState('');
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [tenantModalVisible, setTenantModalVisible] = useState(false);
+  const [tenantList, setTenantList] = useState<any[]>([]);
 
   const validateUserName = (userName: string) => {
     if (!userName) {
@@ -46,30 +51,45 @@ const LoginWithEmail = () => {
 
     setError('');
     setLoading(true);
-
     try {
       const response = await authService.login({
         username: userName,
         passwordHash: password,
       });
-      console.log('Login response:', response.data);
+
       const { token, refreshToken } = response.data;
       await AsyncStorage.setItem('token', token);
       await AsyncStorage.setItem('refreshToken', refreshToken);
-      setLoading(false);
-      router.dismissAll();
-      console.log('Navigating to /home');
-      router.replace('/(tabs)/home');
+
+      const secureResponse = await authService.secure();
+      console.log('Secure response:', secureResponse.data);
+
+      // parse tenantId string into JSON
+      const tenants = JSON.parse(secureResponse.data.tenantId);
+      console.log('Tenants:', tenants);
+      console.log('Selected Tenant:', secureResponse.data.userId);
+      console.log('Selected Tenant:', secureResponse.data.username);
+      await saveTenants(tenants);
+      await setUserId(secureResponse.data.userId);
+      await setUserNames(secureResponse.data.username);
+      await setUserEmail(secureResponse.data.email);
+
+      if (tenants.length > 1) {
+        setTenantModalVisible(true);
+        setTenantList(tenants);
+      } else if (tenants.length === 1) {
+        await setSelectedTenant(tenants[0].TenantID);
+        router.replace("/(tabs)/home");
+      }
     } catch (err: any) {
       setLoading(false);
       console.error('Login error:', err);
-
-      const errorMessage =
-        err?.response?.data?.message || 'Login failed. Check your credentials.';
+      const errorMessage = err?.response?.data?.message || 'Login failed. Check your credentials.';
       setError(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
-
 
   const handleOtpLogin = () => {
     router.push({
@@ -81,7 +101,7 @@ const LoginWithEmail = () => {
   const handleSignUp = () => {
     router.push('/auth/loginwithemail'); //Change to your actual sign-up path
   };
-  
+
   const handleForgotPassword = () => {
     router.push({ pathname: '/auth/forgotpasword' }); //Change to your actual forgot password path
   };
@@ -127,7 +147,7 @@ const LoginWithEmail = () => {
 
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={handleForgotPassword}
             style={{ alignSelf: 'flex-end' }}
           >
@@ -162,6 +182,94 @@ const LoginWithEmail = () => {
             </TouchableOpacity>
           </View>
         </View>
+        <Modal
+          visible={tenantModalVisible}
+          animationType="slide"
+          transparent
+        >
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0,0,0,0.5)",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "#fff",
+                padding: 20,
+                borderRadius: 10,
+                width: "90%",
+              }}
+            >
+              <RnText
+                style={{ fontSize: 18, fontWeight: "bold", marginBottom: 16, textAlign: "center" }}
+              >
+                Select Tenant
+              </RnText>
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  justifyContent: "space-between",
+                }}
+              >
+                {tenantList.map((tenant, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={{
+                      width: "45%",
+                      backgroundColor: "#f9f9f9",
+                      padding: 12,
+                      borderRadius: 10,
+                      marginBottom: 16,
+                      alignItems: "center",
+                      shadowColor: "#000",
+                      shadowOpacity: 0.1,
+                      shadowRadius: 4,
+                      elevation: 2,
+                    }}
+                    onPress={async () => {
+                      console.log('Selected tenant:', tenant);
+                      await setSelectedTenant(tenant);
+                      setTenantModalVisible(false);
+                      router.replace("/(tabs)/home");
+                    }}
+                  >
+                    {/* Dummy Image */}
+                    <View
+                      style={{
+                        width: 60,
+                        height: 60,
+                        borderRadius: 30,
+                        backgroundColor: "#ddd",
+                        marginBottom: 10,
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      <RnText style={{ fontSize: 20, fontWeight: "bold", color: "#555" }}>
+                        {tenant.Name[0]}
+                      </RnText>
+                    </View>
+
+                    {/* Name */}
+                    <RnText style={{ fontSize: 16, fontWeight: "600", textAlign: "center" }}>
+                      {tenant.Name}
+                    </RnText>
+
+                    {/* Role */}
+                    <RnText style={{ fontSize: 14, color: "#666", marginTop: 4 }}>
+                      {tenant.Role}
+                    </RnText>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     </KeyboardAvoidingView>
   );

@@ -2,49 +2,29 @@ import AppHeader from '@/components/AppHeader';
 import ScrollContainer from '@/components/RnScrollContainer';
 import RnText from '@/components/RnText';
 import { Colors } from '@/constants/Colors';
-import { useRouter } from 'expo-router';
-
+import inventoryService from '@/services/inventoryService';
 import { Entypo, MaterialIcons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
   FlatList,
   Modal,
   Pressable,
-  ScrollView,
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
-
-const customersData = [
-  {
-    id: '1',
-    name: 'Ravi Kumar',
-    phone: '9876543210',
-    email: 'ravi@example.com',
-    gst: '29ABCDE1234F2Z5',
-    credit: '₹5,000',
-    debit: '₹2,000',
-    address: 'Bangalore, India',
-  },
-  {
-    id: '2',
-    name: 'Anjali Mehta',
-    phone: '9123456789',
-    email: 'anjali@example.com',
-    gst: '07AAAPL1234C1Z6',
-    credit: '₹8,200',
-    debit: '₹0',
-    address: 'Delhi, India',
-  },
-];
 
 export default function Partners() {
   const router = useRouter();
   const [search, setSearch] = useState('');
-  const [filteredCustomers, setFilteredCustomers] = useState(customersData);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const featureActions = [
     { title: 'Add New Customer', icon: 'add-shopping-cart' },
@@ -52,50 +32,123 @@ export default function Partners() {
     { title: 'Import Customers', icon: 'upload' },
   ];
 
+  // 🔹 Fetch Customers from API
+  const fetchCustomers = async () => {
+    try {
+      setLoading(true);
+      const response = await inventoryService.getCustomers();
+      const data = await response.data;
+      console.log(data);
+      setCustomers(data);
+      setFilteredCustomers(data);
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
   const handleSearch = () => {
     const keyword = search.toLowerCase();
-    const filtered = customersData.filter((customer) =>
-      customer.name.toLowerCase().includes(keyword)
+    const filtered = customers.filter((customer) =>
+      customer.name?.toLowerCase().includes(keyword)
     );
     setFilteredCustomers(filtered);
   };
 
-  const renderHeader = () => (
-    <View style={styles.rowHeader}>
-      {[
-        'Customer',
-        'Phone',
-        'Email',
-        'GST',
-        'Total Credit',
-        'Total Debit',
-        'Address',
-      ].map((title, index) => (
-        <RnText key={index} style={styles.headerCell}>
-          {title}
+
+  const renderItem = ({ item }: { item: any }) => (
+    <TouchableOpacity
+      style={styles.card}
+      activeOpacity={0.9}
+      onPress={() => router.push({ pathname: '/partners/customerDetails', params: { id: item.customerId } })}
+    >
+      {/* Profile Avatar */}
+      <View style={styles.avatar}>
+        <RnText style={styles.avatarText}>
+          {item.name?.charAt(0)?.toUpperCase()}
         </RnText>
-      ))}
-    </View>
+      </View>
+
+      {/* Info */}
+      <View style={{ flex: 1, alignItems: 'flex-start', gap: 4, marginLeft: 8 }}>
+        <RnText style={styles.customerName} numberOfLines={1}>
+          {item.name}
+        </RnText>
+        <RnText style={styles.customerDetail} numberOfLines={1}>
+          {item.phone || "—"}
+        </RnText>
+        <RnText style={styles.customerDetail} numberOfLines={1}>
+          {item.email || "—"}
+        </RnText>
+      </View>
+
+      {/* Action Buttons */}
+      <View style={styles.actionContainer}>
+        <TouchableOpacity
+          onPress={() => router.push({ pathname: '/partners/AddCustomerFormScreen', params: { id: item.customerId } })}
+          style={styles.actionBtn}
+        >
+          <MaterialIcons name="edit" size={20} color="#007bff" />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => handleDelete(item.customerId)}
+          style={[styles.actionBtn, { marginLeft: 8 }]}
+        >
+          <MaterialIcons name="delete" size={20} color="#d9534f" />
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
   );
 
-  const renderItem = ({ item }: { item: typeof customersData[0] }) => (
-    <View style={styles.row}>
-      <RnText style={styles.cell}>{item.name}</RnText>
-      <RnText style={styles.cell}>{item.phone}</RnText>
-      <RnText style={styles.cell}>{item.email}</RnText>
-      <RnText style={styles.cell}>{item.gst}</RnText>
-      <RnText style={styles.cell}>{item.credit}</RnText>
-      <RnText style={styles.cell}>{item.debit}</RnText>
-      <RnText style={styles.cell}>{item.address}</RnText>
-    </View>
-  );
+
+  const handleDelete = async (customerId: string) => {
+    Alert.alert(
+      "Delete Customer",
+      "Are you sure you want to delete this customer?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+               setLoading(true);
+              await inventoryService.deleteCustomer(customerId);
+              Alert.alert("Success", "Customer deleted successfully!");
+               setLoading(false);
+              setCustomers((prev) => prev.filter(c => c.customerId !== customerId));
+              setFilteredCustomers((prev) => prev.filter(c => c.customerId !== customerId));
+            } catch (error) {
+              console.error("Error deleting customer:", error);
+              Alert.alert("Error", "Failed to delete customer.");
+            }
+          }
+        }
+      ]
+    );
+  };
 
   return (
-    <ScrollContainer>
-      <AppHeader />
+    <View style={{ flex: 1, backgroundColor: Colors.light.background, }}>
+      {/* Floating Add Button */}
+      <TouchableOpacity
+        style={styles.floatingButton}
+        onPress={() => setModalVisible(true)}
+      >
+        <Entypo name="plus" size={24} color="#fff" />
+      </TouchableOpacity>
 
+      <View style={{ paddingHorizontal: 16 }}>
+        <AppHeader />
+      </View>
       {/* Top Bar */}
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, { paddingHorizontal: 16 }]}>
         <TextInput
           placeholder="Search by Customer Name"
           style={styles.searchInput}
@@ -104,14 +157,6 @@ export default function Partners() {
         />
         <ActionButton title="Search" onPress={handleSearch} />
       </View>
-
-      {/* Floating Action Button */}
-      <TouchableOpacity
-        style={styles.floatingButton}
-        onPress={() => setModalVisible(true)}
-      >
-        <Entypo name="plus" size={24} color="#fff" />
-      </TouchableOpacity>
 
       {/* Modal for Floating Actions */}
       <Modal visible={modalVisible} animationType="slide" transparent>
@@ -145,23 +190,28 @@ export default function Partners() {
       </Modal>
 
       {/* Customer Table */}
-      <ScrollView horizontal>
-        <View>
-          {renderHeader()}
-          <FlatList
-            data={filteredCustomers}
-            keyExtractor={(item) => item.id}
-            renderItem={renderItem}
-            ListEmptyComponent={
-              <View style={styles.emptyRow}>
-                <RnText style={styles.emptyText}>No customers found</RnText>
-              </View>
-            }
-            contentContainerStyle={{ paddingBottom: 40 }}
-          />
+      {loading ? (
+        <ActivityIndicator size="large" color={Colors.light.primary} />
+      ) : (
+        <View style={{ flex: 1, }}>
+          <ScrollContainer>
+            <FlatList
+              data={filteredCustomers}
+              keyExtractor={(item) => item.customerId?.toString()}
+              renderItem={renderItem}
+              ListEmptyComponent={
+                <View style={styles.emptyRow}>
+                  <RnText style={styles.emptyText}>No customers found</RnText>
+                </View>
+              }
+              contentContainerStyle={{ paddingBottom: 80 }}
+            />
+
+          </ScrollContainer>
         </View>
-      </ScrollView>
-    </ScrollContainer>
+      )}
+
+    </View>
   );
 }
 
@@ -194,13 +244,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   searchInput: {
-    height: 40,
+    flex: 1,
+    height: 42,
     borderWidth: 1,
-    borderColor: '#ccc',
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    minWidth: 180,
-    flexGrow: 1,
+    borderColor: '#ddd',
+    paddingLeft: 40,
+    paddingRight: 12,
+    borderRadius: 20,
+    backgroundColor: '#f9f9f9',
   },
   btn: {
     backgroundColor: '#007bff',
@@ -239,7 +290,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   emptyRow: {
-    padding: 20,
     alignItems: 'center',
   },
   emptyText: {
@@ -247,7 +297,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontStyle: 'italic',
   },
-
   floatingButton: {
     position: 'absolute',
     bottom: 30,
@@ -258,7 +307,6 @@ const styles = StyleSheet.create({
     elevation: 5,
     zIndex: 10,
   },
-
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.3)',
@@ -270,6 +318,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 16,
     padding: 20,
   },
+
   modalItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -277,4 +326,69 @@ const styles = StyleSheet.create({
     borderBottomColor: '#eee',
     borderBottomWidth: 1,
   },
+  card: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#eee',
+    padding: 12,
+    marginBottom: 16,
+    width: 350,
+    alignItems: 'flex-start',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: Colors.light.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  avatarText: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: '700',
+  },
+  customerName: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 4,
+    color: '#333',
+    textAlign: 'center',
+  },
+  customerDetail: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+  },
+
+  searchWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    margin: 12,
+  },
+  searchIcon: {
+    position: 'absolute',
+    left: 16,
+    color: '#999',
+  },
+  actionContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  actionBtn: {
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: "#f5f5f5",
+  },
+
+
 });
