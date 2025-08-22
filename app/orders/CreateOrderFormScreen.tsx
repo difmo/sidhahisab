@@ -13,7 +13,6 @@ import {
     View,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
-
 export default function CreateOrderFormScreen() {
     const navigation = useNavigation();
     useLayoutEffect(() => {
@@ -34,9 +33,7 @@ export default function CreateOrderFormScreen() {
             description: "",
         },
     ]);
-
     const [unitOpenMap, setUnitOpenMap] = useState<{ [key: string]: boolean }>({});
-
     const unitItems = [
         { label: "KG", value: "KG" },
         { label: "Unit", value: "Unit" },
@@ -63,6 +60,7 @@ export default function CreateOrderFormScreen() {
             )
         );
     };
+    
 
     const addProduct = () => {
         const newId = Date.now().toString();

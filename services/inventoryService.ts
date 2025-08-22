@@ -45,7 +45,18 @@ class inventoryService {
     deleteProduct(productId: string) {
         return api.delete(`/inventory-service/api/Product?productId=${productId}`);
     }
+    // Inventory APIs
+    getAllUnits() {
+        return api.get("/inventory-service/api/Unit/GetAll");
+    }
 
+    getCategoriesInfo() {
+        return api.get("/inventory-service/api/Inventory/global/Categories-info");
+    }
+
+    getParentCategories() {
+        return api.get("/inventory-service/api/Category/GetParentCategoryIDAll");
+    }
 
 }
 

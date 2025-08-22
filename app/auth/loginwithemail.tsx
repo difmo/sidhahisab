@@ -232,10 +232,15 @@ const LoginWithEmail = () => {
                       elevation: 2,
                     }}
                     onPress={async () => {
-                      console.log('Selected tenant:', tenant);
-                      await setSelectedTenant(tenant);
-                      setTenantModalVisible(false);
-                      router.replace("/(tabs)/home");
+                      try {
+                        console.log("Selected tenant:", tenant);
+                        await setSelectedTenant(tenant);
+                        setTenantModalVisible(false);
+                        router.replace("/(tabs)/home");
+                      } catch (error) {
+                        console.error("Error selecting tenant:", error);
+                        router.replace("/(tabs)/home");
+                      }
                     }}
                   >
                     {/* Dummy Image */}
